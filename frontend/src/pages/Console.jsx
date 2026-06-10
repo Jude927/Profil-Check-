@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { motion } from 'framer-motion'
 import { ShieldCheck, Users, Bell, FileText, Settings, LogOut, Zap, Database, CheckCircle2 } from 'lucide-react'
 import styles from './Console.module.css'
@@ -21,6 +22,7 @@ const getStatut = sc => {
 
 export default function Console() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   const [sliders, setSliders]   = useState({ st:70, se:68, sd:80, sc:74 })
   const [injected, setInjected] = useState(null)
   const [loading, setLoading]   = useState(null)
@@ -54,7 +56,7 @@ export default function Console() {
             </button>
           ))}
         </nav>
-        <button className={styles.logoutBtn} onClick={() => navigate('/login')}>
+        <button className={styles.logoutBtn} onClick={() => { logout(); navigate('/login') }}>
           <LogOut size={18}/><span>Déconnexion</span>
         </button>
       </aside>

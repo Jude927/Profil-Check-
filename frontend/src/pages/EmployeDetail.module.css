@@ -136,3 +136,35 @@
   .hero { padding: 1.2rem; }
   .heroRight { width: 100%; }
 }
+
+/* ── Classes manquantes (backend state) ── */
+.loadingFull {
+  display:flex; align-items:center; justify-content:center; gap:.65rem;
+  min-height:50vh; color:var(--text-mid); font-size:.95rem;
+}
+.errorFull {
+  padding:2rem; text-align:center; color:#DC2626; font-size:.9rem;
+}
+.statutBig {
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:.5rem 1.5rem; border-radius:999px; font-size:1rem; font-weight:600;
+  margin:.5rem auto; text-align:center;
+}
+.statutNote {
+  font-size:.82rem; color:var(--text-mid); text-align:center; margin:.4rem 0 0;
+}
+.noData {
+  font-size:.85rem; color:var(--text-light); font-style:italic; margin:.5rem 0;
+}
+.actionsRow {
+  display:flex; flex-wrap:wrap; gap:.75rem; align-items:center;
+}
+.backBtn2 {
+  display:flex; align-items:center; gap:.4rem; padding:.55rem 1.1rem;
+  border:1px solid var(--border); border-radius:8px; background:none;
+  color:var(--text-mid); font-size:.88rem; cursor:pointer; transition:.15s;
+}
+.backBtn2:hover { border-color:var(--bordeaux); color:var(--bordeaux); }
+
+@keyframes spin { to { transform:rotate(360deg); } }
+.spin { animation:spin .8s linear infinite; }

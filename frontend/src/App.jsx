@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+
 import Login                from './pages/Login'
 import ResetPassword        from './pages/ResetPassword'
 import Dashboard            from './pages/Dashboard'
@@ -20,43 +23,107 @@ import './index.css'
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Auth */}
-        <Route path="/"                element={<Navigate to="/login" replace />} />
-        <Route path="/login"           element={<Login />} />
-        <Route path="/reset-password"  element={<ResetPassword />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* ── Publiques ── */}
+          <Route path="/"               element={<Navigate to="/login" replace />} />
+          <Route path="/login"          element={<Login />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* RH */}
-        <Route path="/dashboard"       element={<Dashboard />} />
-        <Route path="/employes"        element={<Employes />} />
-        <Route path="/employe"         element={<EmployeDetail />} />
-        <Route path="/alertes"         element={<Alertes />} />
-        <Route path="/test"            element={<TestPortal />} />
-        <Route path="/rapport"         element={<Rapport />} />
+          {/* ── Portail examen (employé, lien par email) ── */}
+          <Route path="/exam/:token"    element={<ExamPortal />} />
+          <Route path="/exam"           element={<ExamPortal />} />
 
-        {/* DG */}
-        <Route path="/dg"              element={<DashboardDG />} />
-        <Route path="/directives"      element={<Directives />} />
+          {/* ── RH ── */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute roles={['RH_MANAGER']}>
+              <Dashboard />
+            </ProtectedRoute>
+          }/>
+          <Route path="/employes" element={
+            <ProtectedRoute roles={['RH_MANAGER', 'DG']}>
+              <Employes />
+            </ProtectedRoute>
+          }/>
+          <Route path="/employe" element={
+            <ProtectedRoute roles={['RH_MANAGER', 'DG']}>
+              <EmployeDetail />
+            </ProtectedRoute>
+          }/>
+          <Route path="/employe/:id" element={
+            <ProtectedRoute roles={['RH_MANAGER', 'DG']}>
+              <EmployeDetail />
+            </ProtectedRoute>
+          }/>
+          <Route path="/alertes" element={
+            <ProtectedRoute roles={['RH_MANAGER', 'DG']}>
+              <Alertes />
+            </ProtectedRoute>
+          }/>
+          <Route path="/test" element={
+            <ProtectedRoute roles={['RH_MANAGER']}>
+              <TestPortal />
+            </ProtectedRoute>
+          }/>
+          <Route path="/rapport" element={
+            <ProtectedRoute roles={['RH_MANAGER', 'DG']}>
+              <Rapport />
+            </ProtectedRoute>
+          }/>
+          <Route path="/rapport/:reportId" element={
+            <ProtectedRoute roles={['RH_MANAGER', 'DG']}>
+              <Rapport />
+            </ProtectedRoute>
+          }/>
 
-        {/* Partagé RH + DG */}
-        <Route path="/departement"     element={<VueDepartement />} />
-        <Route path="/fiches-postes"   element={<FichesPostes />} />
-        <Route path="/profil"          element={<ProfilUtilisateur />} />
+          {/* ── DG ── */}
+          <Route path="/dg" element={
+            <ProtectedRoute roles={['DG']}>
+              <DashboardDG />
+            </ProtectedRoute>
+          }/>
+          <Route path="/directives" element={
+            <ProtectedRoute roles={['DG']}>
+              <Directives />
+            </ProtectedRoute>
+          }/>
 
-        {/* Admin / Technique */}
-        <Route path="/console"         element={<Console />} />
-        <Route path="/utilisateurs"    element={<GestionUtilisateurs />} />
+          {/* ── Partagées ── */}
+          <Route path="/departement" element={
+            <ProtectedRoute roles={['RH_MANAGER', 'DG']}>
+              <VueDepartement />
+            </ProtectedRoute>
+          }/>
+          <Route path="/fiches-postes" element={
+            <ProtectedRoute roles={['RH_MANAGER', 'DG']}>
+              <FichesPostes />
+            </ProtectedRoute>
+          }/>
+          <Route path="/profil" element={
+            <ProtectedRoute>
+              <ProfilUtilisateur />
+            </ProtectedRoute>
+          }/>
 
-        {/* Portail public employé (lien envoyé par email avec token) */}
-        <Route path="/exam/:token"     element={<ExamPortal />} />
-        <Route path="/exam"            element={<ExamPortal />} />
+          {/* ── Admin / Technique ── */}
+          <Route path="/console" element={
+            <ProtectedRoute roles={['ADMIN', 'RH_MANAGER']}>
+              <Console />
+            </ProtectedRoute>
+          }/>
+          <Route path="/utilisateurs" element={
+            <ProtectedRoute roles={['ADMIN']}>
+              <GestionUtilisateurs />
+            </ProtectedRoute>
+          }/>
 
-        {/* Erreurs */}
-        <Route path="/403"             element={<NotFound code="403" />} />
-        <Route path="*"                element={<NotFound code="404" />} />
-      </Routes>
-    </BrowserRouter>
+          {/* ── Erreurs ── */}
+          <Route path="/403"  element={<NotFound code="403" />} />
+          <Route path="*"     element={<NotFound code="404" />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 

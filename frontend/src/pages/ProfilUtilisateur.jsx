@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { motion } from 'framer-motion'
 import {
   ShieldCheck, Users, Bell, FileText, Settings, LogOut,
@@ -18,6 +19,7 @@ const activite = [
 
 export default function ProfilUtilisateur() {
   const navigate = useNavigate()
+  const { logout, user } = useAuth()
   const [activeTab, setTab] = useState('infos')
   const [saved, setSaved]   = useState(false)
 
@@ -78,7 +80,7 @@ export default function ProfilUtilisateur() {
             </button>
           ))}
         </nav>
-        <button className={styles.logoutBtn} onClick={() => navigate('/login')}>
+        <button className={styles.logoutBtn} onClick={() => { logout(); navigate('/login') }}>
           <LogOut size={18}/><span>Déconnexion</span>
         </button>
       </aside>

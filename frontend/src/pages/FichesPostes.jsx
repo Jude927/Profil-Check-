@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ShieldCheck, Users, Bell, FileText, Settings, LogOut,
@@ -69,6 +70,7 @@ const depts = ['Tous', 'Tech', 'Data', 'Infra', 'Finance', 'RH']
 
 export default function FichesPostes() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   const [fiches, setFiches]   = useState(fichesData)
   const [filter, setFilter]   = useState('Tous')
   const [expanded, setExpand] = useState(null)
@@ -113,7 +115,7 @@ export default function FichesPostes() {
             </button>
           ))}
         </nav>
-        <button className={styles.logoutBtn} onClick={() => navigate('/login')}>
+        <button className={styles.logoutBtn} onClick={() => { logout(); navigate('/login') }}>
           <LogOut size={18}/><span>Déconnexion</span>
         </button>
       </aside>

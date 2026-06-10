@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ShieldCheck, Users, Bell, FileText, Settings, LogOut,
@@ -30,6 +31,7 @@ const statutCfg = {
 
 export default function GestionUtilisateurs() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   const [users, setUsers]       = useState(utilisateurs)
   const [search, setSearch]     = useState('')
   const [roleFilter, setRole]   = useState('Tous')
@@ -88,7 +90,7 @@ export default function GestionUtilisateurs() {
             </button>
           ))}
         </nav>
-        <button className={styles.logoutBtn} onClick={() => navigate('/login')}>
+        <button className={styles.logoutBtn} onClick={() => { logout(); navigate('/login') }}>
           <LogOut size={18}/><span>Déconnexion</span>
         </button>
       </aside>

@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -6,8 +7,10 @@ import {
 } from 'recharts'
 import {
   ShieldCheck, ArrowLeft, Download, AlertTriangle,
-  CheckCircle2, XCircle, AlertCircle, Calendar, User, Briefcase
+  CheckCircle2, XCircle, AlertCircle, Calendar, User, Briefcase, Loader2
 } from 'lucide-react'
+import { pdfApi } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 import styles from './Rapport.module.css'
 
 const radarData = [
@@ -39,18 +42,46 @@ const SC = (0.40*71 + 0.25*68 + 0.20*90 + 0.15*74).toFixed(1)
 const fadeUp = (d=0) => ({ initial:{opacity:0,y:20}, animate:{opacity:1,y:0}, transition:{duration:0.45,delay:d} })
 
 export default function Rapport() {
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
+  const location  = useLocation()
+  const { logout } = useAuth()
+
+  // reportId passé via navigate state ou depuis l'URL
+  const reportId = location.state?.reportId ?? null
+  const employeeId = location.state?.employeeId ?? null
+
+  const [downloading, setDownloading] = useState(false)
+  const [dlError, setDlError]         = useState('')
+
+  const handleDownload = async () => {
+    if (!reportId) {
+      setDlError('Aucun rapport sélectionné. Lancez d\'abord une évaluation.')
+      return
+    }
+    setDownloading(true)
+    setDlError('')
+    try {
+      await pdfApi.downloadReport(reportId)
+    } catch (e) {
+      setDlError(e.message)
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/employe')}>
+        <button className={styles.backBtn} onClick={() => employeeId ? navigate(`/employe/${employeeId}`) : navigate('/employes')}>
           <ArrowLeft size={18}/> Retour à la fiche
         </button>
         <div className={styles.brand}><ShieldCheck size={20}/><span>ProfilCheck</span></div>
-        <button className={styles.downloadBtn}>
-          <Download size={16}/> Exporter PDF
-        </button>
+        <div>
+          {dlError && <p className={styles.dlError}>⚠️ {dlError}</p>}
+          <button className={styles.downloadBtn} onClick={handleDownload} disabled={downloading}>
+            {downloading ? <><Loader2 size={14} className={styles.spin}/> Export…</> : <><Download size={16}/> Exporter PDF</>}
+          </button>
+        </div>
       </header>
 
       <div className={styles.content}>

@@ -123,3 +123,9 @@
   .content { padding: 1rem; }
   .rapportHeader { padding: 1.25rem; }
 }
+
+/* Utilitaires manquants */
+.dlError { font-size:.78rem; color:var(--danger); margin-bottom:.3rem; }
+.downloadBtn:disabled { opacity:.65; cursor:not-allowed; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.spin { animation:spin .8s linear infinite; }

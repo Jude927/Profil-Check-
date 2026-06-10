@@ -1,51 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, AreaChart, Area
+  ResponsiveContainer, AreaChart, Area
 } from 'recharts'
 import {
   ShieldCheck, Users, Bell, FileText, Settings, LogOut,
   TrendingUp, AlertTriangle, CheckCircle2, Clock,
-  ArrowRight, Zap, Building2, ChevronRight
+  Zap, Building2, ChevronRight, Loader2
 } from 'lucide-react'
+import { dashboardApi } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 import styles from './DashboardDG.module.css'
-
-const deptData = [
-  { dept: 'Tech',    conformes: 78, surveiller: 15, suspects: 7  },
-  { dept: 'Data',    conformes: 65, surveiller: 25, suspects: 10 },
-  { dept: 'Finance', conformes: 82, surveiller: 12, suspects: 6  },
-  { dept: 'RH',      conformes: 91, surveiller: 7,  suspects: 2  },
-  { dept: 'Design',  conformes: 88, surveiller: 9,  suspects: 3  },
-  { dept: 'Infra',   conformes: 55, surveiller: 30, suspects: 15 },
-]
-
-const trendData = [
-  { mois:'Jan', score:68 }, { mois:'Fév', score:71 }, { mois:'Mar', score:69 },
-  { mois:'Avr', score:74 }, { mois:'Mai', score:76 }, { mois:'Jun', score:79 },
-]
-
-const directives = [
-  { id:1, titre:'Plan de formation SQL — équipe Infra',    priorite:'Critique', rh:'Sophie R.', statut:'pending',  date:'10/06' },
-  { id:2, titre:'Audit complet département Data',           priorite:'Haute',    rh:'Marc D.',   statut:'pending',  date:'09/06' },
-  { id:3, titre:'Réévaluation profils suspects — Finance',  priorite:'Haute',    rh:'Sophie R.', statut:'done',     date:'07/06' },
-  { id:4, titre:'Mise à jour fiches de poste DevOps',       priorite:'Moyenne',  rh:'Julie P.',  statut:'pending',  date:'05/06' },
-]
-
-const activite = [
-  { action:'Test terminé',        nom:'Amara Diallo',   score:71, time:'Il y a 3min',  color:'#D97706' },
-  { action:'Alerte déclenchée',   nom:'Omar Sy',        score:23, time:'Il y a 5min',  color:'#DC2626' },
-  { action:'Rapport généré',      nom:'Sophie Martin',  score:92, time:'Il y a 12min', color:'#4A7C59' },
-  { action:'Test en cours',       nom:'Yann Bernard',   score:null,time:'Il y a 18min',color:'#2563EB' },
-  { action:'Directive résolue',   nom:'Lucas Petit',    score:41, time:'Il y a 1h',    color:'#4A7C59' },
-]
 
 const prioCfg = {
   Critique: { color:'#7C3AED', bg:'#F3E8FF' },
   Haute:    { color:'#DC2626', bg:'#FEE2E2' },
   Moyenne:  { color:'#D97706', bg:'#FEF3C7' },
   Basse:    { color:'#4A7C59', bg:'#E6F4EC' },
+  HAUTE:    { color:'#DC2626', bg:'#FEE2E2' },
+  CRITIQUE: { color:'#7C3AED', bg:'#F3E8FF' },
+  MOYENNE:  { color:'#D97706', bg:'#FEF3C7' },
+  BASSE:    { color:'#4A7C59', bg:'#E6F4EC' },
 }
 
 const navItems = [
@@ -62,7 +39,44 @@ const fade = (d=0) => ({ initial:{opacity:0,y:16}, animate:{opacity:1,y:0}, tran
 
 export default function DashboardDG() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   const [active, setActive] = useState('dashboard')
+
+  const [data, setData]     = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError]   = useState('')
+
+  useEffect(() => {
+    dashboardApi.dg()
+      .then(setData)
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  // Transformations API → graphiques
+  // DgDashboardResponse: { totalEmployees, globalConformityRate, criticalAlerts,
+  //   validationRate, activeDirectives, testsThisMonth,
+  //   conformityByDepartment:[{deptName,conformes,surveiller,suspects}],
+  //   trendData:[{mois,score}], recentDirectives:[...], recentActivity:[...] }
+  const deptData  = data?.conformityByDepartment ?? [
+    { dept:'Tech', conformes:78, surveiller:15, suspects:7 },
+    { dept:'RH',   conformes:91, surveiller:7,  suspects:2 },
+  ]
+  const trendData = data?.trendData ?? [
+    { mois:'Jan',score:68},{mois:'Fév',score:71},{mois:'Mar',score:69},
+    { mois:'Avr',score:74},{mois:'Mai',score:76},{mois:'Jun',score:79},
+  ]
+  const directives  = data?.recentDirectives ?? []
+  const activite    = data?.recentActivity   ?? []
+
+  const kpis = [
+    { icon:Users,         label:'Total employés',     value: data?.totalEmployees       ?? '—', delta:'+8',  pos:true,  sub:'ce mois' },
+    { icon:TrendingUp,    label:'Conformité globale',  value: data?.globalConformityRate ? `${data.globalConformityRate}%` : '—', delta:'+4%', pos:true, sub:'vs mois dernier' },
+    { icon:AlertTriangle, label:'Alertes critiques',   value: data?.criticalAlerts       ?? '—', delta:'-2',  pos:true,  sub:'en cours' },
+    { icon:CheckCircle2,  label:'Taux de validation',  value: data?.validationRate       ? `${data.validationRate}%` : '—', delta:'+7%', pos:true, sub:'des profils' },
+    { icon:FileText,      label:'Directives actives',  value: data?.activeDirectives     ?? '—', delta:'',    pos:true,  sub:'en attente' },
+    { icon:Zap,           label:'Tests ce mois',       value: data?.testsThisMonth       ?? '—', delta:'+12', pos:true,  sub:'sessions' },
+  ]
 
   return (
     <div className={styles.layout}>
@@ -81,7 +95,7 @@ export default function DashboardDG() {
             </button>
           ))}
         </nav>
-        <button className={styles.logoutBtn} onClick={() => navigate('/login')}>
+        <button className={styles.logoutBtn} onClick={() => { logout(); navigate('/login') }}>
           <LogOut size={18}/><span>Déconnexion</span>
         </button>
       </aside>
@@ -101,16 +115,11 @@ export default function DashboardDG() {
         </header>
 
         <div className={styles.content}>
+          {loading && <div className={styles.loadingBox}><Loader2 size={24} className={styles.spin}/> Chargement…</div>}
+          {error && !loading && <div className={styles.errorBox}>⚠️ {error} — données indicatives affichées.</div>}
           {/* KPIs */}
           <div className={styles.kpiGrid}>
-            {[
-              { icon:Users,         label:'Total employés',    value:'124', delta:'+8',   pos:true,  sub:'ce mois' },
-              { icon:TrendingUp,    label:'Conformité globale', value:'73%', delta:'+4%',  pos:true,  sub:'vs mois dernier' },
-              { icon:AlertTriangle, label:'Alertes critiques',  value:'3',   delta:'-2',   pos:true,  sub:'en cours' },
-              { icon:CheckCircle2,  label:'Taux de validation', value:'61%', delta:'+7%',  pos:true,  sub:'des profils' },
-              { icon:FileText,      label:'Directives actives', value:'4',   delta:'',     pos:true,  sub:'en attente' },
-              { icon:Zap,           label:'Tests ce mois',     value:'38',  delta:'+12',  pos:true,  sub:'sessions' },
-            ].map(({ icon:Icon, label, value, delta, pos, sub }, i) => (
+            {kpis.map(({ icon:Icon, label, value, delta, pos, sub }, i) => (
               <motion.div key={i} className={styles.kpiCard} {...fade(i*.06)}>
                 <div className={styles.kpiTop}>
                   <div className={styles.kpiIcon}><Icon size={17}/></div>
@@ -131,7 +140,7 @@ export default function DashboardDG() {
               <div className={styles.cardTitle}>Conformité par département</div>
               <div className={styles.cardSub}>Répartition des statuts · 6 départements</div>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={deptData} barSize={22}>
+                <BarChart data={deptData.map(d => ({...d, dept: d.deptName ?? d.dept}))} barSize={22}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE3" vertical={false}/>
                   <XAxis dataKey="dept" tick={{fontSize:12,fill:'#78716C'}} axisLine={false} tickLine={false}/>
                   <YAxis tick={{fontSize:11,fill:'#78716C'}} axisLine={false} tickLine={false}/>
@@ -175,21 +184,29 @@ export default function DashboardDG() {
                 </button>
               </div>
               <div className={styles.directivesList}>
-                {directives.map(d => {
-                  const cfg = prioCfg[d.priorite]
+                {directives.length === 0 ? (
+                  <p className={styles.noData}>Aucune directive en attente</p>
+                ) : directives.slice(0,4).map((d,i) => {
+                  const prio = d.priorite ?? d.priorityLevel ?? 'Moyenne'
+                  const cfg  = prioCfg[prio] ?? prioCfg.Moyenne
+                  const statut = d.statut ?? d.status ?? 'pending'
                   return (
-                    <div key={d.id} className={styles.directiveItem}>
+                    <div key={d.id ?? i} className={styles.directiveItem}>
                       <div className={styles.directiveLeft}>
                         <span className={styles.prioriteBadge} style={{color:cfg.color,background:cfg.bg}}>
-                          {d.priorite}
+                          {prio}
                         </span>
                         <div>
-                          <div className={styles.directiveTitre}>{d.titre}</div>
-                          <div className={styles.directiveMeta}>RH : {d.rh} · {d.date}</div>
+                          <div className={styles.directiveTitre}>{d.titre ?? d.title ?? '—'}</div>
+                          <div className={styles.directiveMeta}>
+                            {d.rh ? `RH : ${d.rh} · ` : ''}{d.date ?? ''}
+                          </div>
                         </div>
                       </div>
-                      <div className={`${styles.directiveStatut} ${d.statut==='done'?styles.statutDone:styles.statutPending}`}>
-                        {d.statut === 'done' ? <><CheckCircle2 size={13}/> Résolu</> : <><Clock size={13}/> En attente</>}
+                      <div className={`${styles.directiveStatut} ${statut==='done'||statut==='RESOLVED'?styles.statutDone:styles.statutPending}`}>
+                        {(statut==='done'||statut==='RESOLVED')
+                          ? <><CheckCircle2 size={13}/> Résolu</>
+                          : <><Clock size={13}/> En attente</>}
                       </div>
                     </div>
                   )

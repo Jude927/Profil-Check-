@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ShieldCheck, Users, Bell, FileText, Settings, LogOut,
@@ -61,6 +62,7 @@ const liveEvents = [
 
 export default function VueDepartement() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   const [deptSel, setDeptSel] = useState('Tous')
   const [feed, setFeed]       = useState(liveEvents.slice(0, 3))
   const [pulse, setPulse]     = useState(false)
@@ -113,7 +115,7 @@ export default function VueDepartement() {
             </button>
           ))}
         </nav>
-        <button className={styles.logoutBtn} onClick={() => navigate('/login')}>
+        <button className={styles.logoutBtn} onClick={() => { logout(); navigate('/login') }}>
           <LogOut size={18}/><span>Déconnexion</span>
         </button>
       </aside>
