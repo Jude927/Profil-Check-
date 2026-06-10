@@ -54,19 +54,23 @@ export default function Rapport() {
   const [dlError, setDlError]         = useState('')
 
   const handleDownload = async () => {
-    if (!reportId) {
-      setDlError('Aucun rapport sélectionné. Lancez d\'abord une évaluation.')
-      return
-    }
-    setDownloading(true)
     setDlError('')
-    try {
-      await pdfApi.downloadReport(reportId)
-    } catch (e) {
-      setDlError(e.message)
-    } finally {
+
+    // Si le backend est dispo, on tente d'abord le vrai PDF
+    if (reportId) {
+      setDownloading(true)
+      try {
+        await pdfApi.downloadReport(reportId)
+        setDownloading(false)
+        return
+      } catch {
+        // Fallback : impression navigateur
+      }
       setDownloading(false)
     }
+
+    // Génération PDF côté navigateur (window.print)
+    window.print()
   }
 
   return (
@@ -79,7 +83,7 @@ export default function Rapport() {
         <div>
           {dlError && <p className={styles.dlError}>⚠️ {dlError}</p>}
           <button className={styles.downloadBtn} onClick={handleDownload} disabled={downloading}>
-            {downloading ? <><Loader2 size={14} className={styles.spin}/> Export…</> : <><Download size={16}/> Exporter PDF</>}
+            {downloading ? <><Loader2 size={14} className={styles.spin}/> Export…</> : <><Download size={16}/> Télécharger PDF</>}
           </button>
         </div>
       </header>

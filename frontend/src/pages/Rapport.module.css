@@ -129,3 +129,14 @@
 .downloadBtn:disabled { opacity:.65; cursor:not-allowed; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .spin { animation:spin .8s linear infinite; }
+
+/* ── Impression PDF propre ── */
+@media print {
+  .header { position: static !important; box-shadow: none; border-bottom: 1px solid #ccc; }
+  .backBtn, .downloadBtn, .dlError { display: none !important; }
+  .page { background: white !important; }
+  .content { padding: 0 !important; }
+  .card { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+  .grid { grid-template-columns: repeat(2, 1fr) !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
